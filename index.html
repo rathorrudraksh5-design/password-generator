@@ -1,0 +1,321 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Password Generator</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        background: #10131a;
+        color: white;
+        font-family: "Segoe UI", Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .app {
+        width: 520px;
+        max-width: 92%;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 28px;
+        margin: 0 0 6px;
+    }
+
+    .subtitle {
+        color: #9aa4b2;
+        margin-bottom: 28px;
+    }
+
+    .password {
+        width: 100%;
+        padding: 16px;
+        border: none;
+        outline: none;
+        border-radius: 8px;
+        background: #1b202b;
+        color: white;
+        font-size: 19px;
+        text-align: center;
+        font-family: Consolas, monospace;
+    }
+
+    .strength {
+        color: #9aa4b2;
+        font-weight: bold;
+        margin: 12px 0;
+    }
+
+    .length {
+        margin: 18px 0;
+    }
+
+    .length input {
+        width: 55px;
+        padding: 7px;
+        text-align: center;
+        font-size: 15px;
+        border-radius: 5px;
+        border: none;
+    }
+
+    .options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        text-align: left;
+        margin: 15px 20px;
+    }
+
+    label {
+        cursor: pointer;
+        font-size: 15px;
+    }
+
+    input[type="checkbox"] {
+        width: 17px;
+        height: 17px;
+        vertical-align: middle;
+        margin-right: 7px;
+        accent-color: #2563eb;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        margin-top: 10px;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .generate {
+        background: #2563eb;
+    }
+
+    .generate:hover {
+        background: #1d4ed8;
+    }
+
+    .copy {
+        background: #252b36;
+    }
+
+    .copy:hover {
+        background: #343b48;
+    }
+
+    .status {
+        color: #9aa4b2;
+        margin-top: 18px;
+        font-size: 14px;
+    }
+
+    .footer {
+        color: #697386;
+        font-size: 12px;
+        margin-top: 30px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <h1>🔐 PASSWORD GENERATOR</h1>
+
+    <div class="subtitle">
+        Create a strong random password
+    </div>
+
+    <input
+        id="password"
+        class="password"
+        type="text"
+        readonly
+    >
+
+    <div id="strength" class="strength">
+        Strength: ---
+    </div>
+
+    <div class="length">
+        Password Length:
+        <input
+            id="length"
+            type="number"
+            value="16"
+            min="4"
+            max="32"
+        >
+    </div>
+
+    <div class="options">
+
+        <label>
+            <input id="uppercase" type="checkbox" checked>
+            ABC&nbsp; Uppercase
+        </label>
+
+        <label>
+            <input id="numbers" type="checkbox" checked>
+            123&nbsp; Numbers
+        </label>
+
+        <label>
+            <input id="lowercase" type="checkbox" checked>
+            abc&nbsp; Lowercase
+        </label>
+
+        <label>
+            <input id="symbols" type="checkbox" checked>
+            !@#&nbsp; Symbols
+        </label>
+
+    </div>
+
+    <button class="generate" onclick="generatePassword()">
+        ⚡ GENERATE PASSWORD
+    </button>
+
+    <button class="copy" onclick="copyPassword()">
+        📋 COPY PASSWORD
+    </button>
+
+    <div id="status" class="status">
+        Ready
+    </div>
+
+    <div class="footer">
+        Passwords are generated locally on your device.
+    </div>
+
+</div>
+
+
+<script>
+
+function generatePassword() {
+
+    const length = Number(
+        document.getElementById("length").value
+    );
+
+    if (length < 4 || length > 32) {
+        alert("Password length must be between 4 and 32.");
+        return;
+    }
+
+    let characters = "";
+
+    if (document.getElementById("uppercase").checked) {
+        characters += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    }
+
+    if (document.getElementById("lowercase").checked) {
+        characters += "abcdefghijklmnopqrstuvwxyz";
+    }
+
+    if (document.getElementById("numbers").checked) {
+        characters += "0123456789";
+    }
+
+    if (document.getElementById("symbols").checked) {
+        characters += "!@#$%^&*()-_=+[]{};:,.?/";
+    }
+
+    if (characters.length === 0) {
+        alert("Select at least one character type.");
+        return;
+    }
+
+    let password = "";
+
+    const randomArray = new Uint32Array(length);
+    crypto.getRandomValues(randomArray);
+
+    for (let i = 0; i < length; i++) {
+        password += characters[
+            randomArray[i] % characters.length
+        ];
+    }
+
+    document.getElementById("password").value = password;
+
+    checkStrength(password);
+
+    document.getElementById("status").textContent = "Ready";
+}
+
+
+function checkStrength(password) {
+
+    let score = 0;
+
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+
+    if (/[A-Z]/.test(password)) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    const strength =
+        document.getElementById("strength");
+
+    if (score <= 2) {
+        strength.textContent = "Strength: Weak";
+    }
+    else if (score <= 4) {
+        strength.textContent = "Strength: Medium";
+    }
+    else {
+        strength.textContent = "Strength: Strong";
+    }
+}
+
+
+async function copyPassword() {
+
+    const password =
+        document.getElementById("password").value;
+
+    if (!password) {
+        alert("Generate a password first.");
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(password);
+
+        document.getElementById("status").textContent =
+            "✓ Password copied!";
+    }
+    catch {
+        alert("Copy failed. Please copy the password manually.");
+    }
+}
+
+
+generatePassword();
+
+</script>
+
+</body>
+</html>
+```
